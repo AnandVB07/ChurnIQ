@@ -1,0 +1,199 @@
+{
+  "model_name": "Tuned XGBoost",
+  "version": "1.0.0",
+  "training_date": "2026-08-31T13:03:36.158984+00:00",
+  "total_test_samples": 1409,
+  "churn_rate_test": 0.2654,
+  "metrics": {
+    "accuracy": 0.7488,
+    "precision": 0.5173,
+    "recall": 0.7995,
+    "f1": 0.6282,
+    "roc_auc": 0.8479,
+    "brier_score": 0.1622
+  },
+  "confusion_matrix": {
+    "true_negative": 756,
+    "false_positive": 279,
+    "false_negative": 75,
+    "true_positive": 299,
+    "matrix": [
+      [
+        756,
+        279
+      ],
+      [
+        75,
+        299
+      ]
+    ]
+  },
+  "hyperparameters": {
+    "learning_rate": 0.03,
+    "max_depth": 3,
+    "n_estimators": 200,
+    "subsample": 0.8
+  },
+  "features": [
+    "tenure",
+    "MonthlyCharges",
+    "TotalCharges",
+    "avg_monthly_spend",
+    "charge_ratio",
+    "service_count",
+    "gender_Female",
+    "gender_Male",
+    "SeniorCitizen_0",
+    "SeniorCitizen_1",
+    "Partner_No",
+    "Partner_Yes",
+    "Dependents_No",
+    "Dependents_Yes",
+    "PhoneService_No",
+    "PhoneService_Yes",
+    "MultipleLines_No",
+    "MultipleLines_No phone service",
+    "MultipleLines_Yes",
+    "InternetService_DSL",
+    "InternetService_Fiber optic",
+    "InternetService_No",
+    "OnlineSecurity_No",
+    "OnlineSecurity_No internet service",
+    "OnlineSecurity_Yes",
+    "OnlineBackup_No",
+    "OnlineBackup_No internet service",
+    "OnlineBackup_Yes",
+    "DeviceProtection_No",
+    "DeviceProtection_No internet service",
+    "DeviceProtection_Yes",
+    "TechSupport_No",
+    "TechSupport_No internet service",
+    "TechSupport_Yes",
+    "StreamingTV_No",
+    "StreamingTV_No internet service",
+    "StreamingTV_Yes",
+    "StreamingMovies_No",
+    "StreamingMovies_No internet service",
+    "StreamingMovies_Yes",
+    "Contract_Month-to-month",
+    "Contract_One year",
+    "Contract_Two year",
+    "PaperlessBilling_No",
+    "PaperlessBilling_Yes",
+    "PaymentMethod_Bank transfer (automatic)",
+    "PaymentMethod_Credit card (automatic)",
+    "PaymentMethod_Electronic check",
+    "PaymentMethod_Mailed check",
+    "tenure_group_0-12m",
+    "tenure_group_13-24m",
+    "tenure_group_25-48m",
+    "tenure_group_49-60m",
+    "tenure_group_>60m",
+    "is_long_term_contract_0",
+    "is_long_term_contract_1",
+    "has_tech_support_0",
+    "has_tech_support_1"
+  ],
+  "global_feature_importance": [
+    {
+      "feature": "Contract_Month-to-month",
+      "feature_label": "Month-to-Month Contract",
+      "importance": 0.6807286739349365
+    },
+    {
+      "feature": "charge_ratio",
+      "feature_label": "Monthly-to-Total Spend Ratio",
+      "importance": 0.3609112799167633
+    },
+    {
+      "feature": "OnlineSecurity_No",
+      "feature_label": "Lack of Online Security Add-on",
+      "importance": 0.229917511343956
+    },
+    {
+      "feature": "InternetService_Fiber optic",
+      "feature_label": "Fiber Optic High-Speed Internet",
+      "importance": 0.20331762731075287
+    },
+    {
+      "feature": "TechSupport_No",
+      "feature_label": "Lack of Dedicated Tech Support",
+      "importance": 0.18663299083709717
+    },
+    {
+      "feature": "MonthlyCharges",
+      "feature_label": "Monthly Subscription Fee",
+      "importance": 0.17477113008499146
+    },
+    {
+      "feature": "PaymentMethod_Electronic check",
+      "feature_label": "Electronic Check Payment Method",
+      "importance": 0.1702883094549179
+    },
+    {
+      "feature": "tenure",
+      "feature_label": "Tenure with Company",
+      "importance": 0.12459220737218857
+    },
+    {
+      "feature": "Contract_Two year",
+      "feature_label": "Two-Year Contract",
+      "importance": 0.11852316558361053
+    },
+    {
+      "feature": "PaperlessBilling_No",
+      "feature_label": "Paper Invoicing",
+      "importance": 0.11092886328697205
+    },
+    {
+      "feature": "MultipleLines_No",
+      "feature_label": "Multiplelines No",
+      "importance": 0.09714982658624649
+    },
+    {
+      "feature": "Contract_One year",
+      "feature_label": "One-Year Contract",
+      "importance": 0.06408307701349258
+    },
+    {
+      "feature": "StreamingMovies_Yes",
+      "feature_label": "Streamingmovies Yes",
+      "importance": 0.06355530023574829
+    },
+    {
+      "feature": "OnlineBackup_No",
+      "feature_label": "Onlinebackup No",
+      "importance": 0.050644874572753906
+    },
+    {
+      "feature": "avg_monthly_spend",
+      "feature_label": "Average Monthly Spend Rate",
+      "importance": 0.04754094034433365
+    },
+    {
+      "feature": "TotalCharges",
+      "feature_label": "Total Historical Spend",
+      "importance": 0.04731353372335434
+    },
+    {
+      "feature": "Dependents_No",
+      "feature_label": "No Dependents on Account",
+      "importance": 0.03496145084500313
+    },
+    {
+      "feature": "StreamingTV_Yes",
+      "feature_label": "Streamingtv Yes",
+      "importance": 0.032482344657182693
+    },
+    {
+      "feature": "SeniorCitizen_0",
+      "feature_label": "Seniorcitizen 0",
+      "importance": 0.027845818549394608
+    },
+    {
+      "feature": "gender_Female",
+      "feature_label": "Gender Female",
+      "importance": 0.011811915785074234
+    }
+  ]
+}
