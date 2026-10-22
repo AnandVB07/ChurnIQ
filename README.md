@@ -165,7 +165,7 @@ python -m venv venv
 # On Linux/macOS:
 source venv/bin/activate
 
-pip install -r requirements.txt
+pip install -r requirements.txt -r requirements-dev.txt
 ```
 
 ### 2. Train Models & Generate Artifacts

@@ -1,32 +1,33 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
-  Users,
-  AlertTriangle,
-  TrendingDown,
-  Percent,
-  Sparkles,
-  ArrowRight,
-  ShieldCheck,
-  RefreshCw
+  ArrowDownRight, ArrowRight, ArrowUpRight, BadgeAlert, BrainCircuit,
+  CircleHelp, RefreshCw, ShieldCheck, Sparkles, Users, Waves,
 } from 'lucide-react';
 import {
-  PieChart,
-  Pie,
-  Cell,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  LineChart,
-  Line,
-  CartesianGrid
+  Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer,
+  Tooltip, XAxis, YAxis,
 } from 'recharts';
-
-import MetricCard from '../components/MetricCard';
 import RiskBadge from '../components/RiskBadge';
 import { apiService } from '../services/api';
+
+const RISK_COLORS = { LOW: '#36c69a', MEDIUM: '#f4b860', HIGH: '#f17664' };
+const compactNumber = (value = 0) => new Intl.NumberFormat('en', { notation: value > 999 ? 'compact' : 'standard', maximumFractionDigits: 1 }).format(value);
+
+function LoadingState() {
+  return <div className="loading-state"><span className="loading-orbit" /><p>Gathering your latest customer signals…</p></div>;
+}
+
+function ErrorState({ message, retry }) {
+  return <div className="error-panel"><span className="error-icon"><BadgeAlert size={20} /></span><div><strong>We couldn't load the overview</strong><p>{message}</p></div><button type="button" className="secondary-button" onClick={retry}><RefreshCw size={15} /> Try again</button></div>;
+}
+
+function Metric({ label, value, detail, icon: Icon, tone, note }) {
+  return <article className="metric-card">
+    <div className="metric-top"><span>{label}</span><span className={`metric-icon ${tone}`}><Icon size={18} strokeWidth={1.9} /></span></div>
+    <div className="metric-value">{value}</div>
+    <div className="metric-foot"><span>{detail}</span>{note && <span className={`metric-note ${tone}`}><ArrowUpRight size={13} />{note}</span>}</div>
+  </article>;
+}
 
 export default function Dashboard({ onNavigateToPredict, onSelectCustomer }) {
   const [data, setData] = useState(null);
@@ -34,277 +35,66 @@ export default function Dashboard({ onNavigateToPredict, onSelectCustomer }) {
   const [error, setError] = useState(null);
 
   const fetchDashboardData = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const res = await apiService.getAnalytics();
-      setData(res);
-    } catch (err) {
-      console.error('Failed to load dashboard data:', err);
-      setError(err.message || 'Failed to connect to backend service.');
-    } finally {
-      setLoading(false);
-    }
+    setLoading(true); setError(null);
+    try { setData(await apiService.getAnalytics()); }
+    catch (err) { setError(err.message || 'Check that the API is running and try again.'); }
+    finally { setLoading(false); }
   };
 
-  useEffect(() => {
-    fetchDashboardData();
-  }, []);
-
-  if (loading) {
-    return (
-      <div className="flex h-96 items-center justify-center">
-        <div className="flex flex-col items-center gap-3">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-brand-primary border-t-transparent" />
-          <p className="text-xs font-medium text-dark-muted dark:text-dark-muted light:text-light-muted">
-            Aggregating churn telemetry and model predictions...
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="rounded-xl border border-rose-500/30 bg-rose-500/10 p-6 text-center">
-        <AlertTriangle className="mx-auto h-8 w-8 text-rose-400" />
-        <h3 className="mt-2 text-sm font-semibold text-rose-300">Data Aggregation Error</h3>
-        <p className="mt-1 text-xs text-dark-muted">{error}</p>
-        <button
-          onClick={fetchDashboardData}
-          className="mt-4 inline-flex items-center gap-2 rounded-lg bg-brand-primary px-4 py-2 text-xs font-semibold text-white shadow-neon-subtle hover:bg-brand-bright"
-        >
-          <RefreshCw className="h-3.5 w-3.5" /> Retry
-        </button>
-      </div>
-    );
-  }
+  useEffect(() => { fetchDashboardData(); }, []);
+  if (loading) return <LoadingState />;
+  if (error) return <ErrorState message={error} retry={fetchDashboardData} />;
 
   const {
-    total_customers = 0,
-    overall_churn_rate = 0,
-    high_risk_count = 0,
-    avg_churn_probability = 0,
-    risk_distribution = [],
-    churn_by_contract = [],
-    churn_by_tenure = [],
-    recent_predictions = []
+    total_customers = 0, overall_churn_rate = 0, high_risk_count = 0,
+    avg_churn_probability = 0, risk_distribution = [], churn_by_contract = [],
+    recent_predictions = [],
   } = data || {};
+  const churnLabel = `${(overall_churn_rate * 100).toFixed(1)}%`;
+  const highRiskShare = total_customers ? Math.round((high_risk_count / total_customers) * 100) : 0;
 
-  const RISK_COLORS = {
-    LOW: '#10B981',
-    MEDIUM: '#F59E0B',
-    HIGH: '#EF4444'
-  };
+  return <div className="dashboard-stack">
+    <section className="welcome-row">
+      <div><div className="eyebrow"><span className="eyebrow-dot" /> CUSTOMER RETENTION OVERVIEW</div><h2>Know who needs you next.</h2><p>A clear view of churn signals, at-risk accounts, and the actions that can make a difference.</p></div>
+      <button type="button" className="primary-button" onClick={onNavigateToPredict}><BrainCircuit size={17} /> Assess a customer <ArrowRight size={16} /></button>
+    </section>
 
-  return (
-    <div className="space-y-6">
-      {/* Top Banner CTA */}
-      <div className="relative overflow-hidden rounded-2xl border border-brand-primary/30 bg-gradient-to-r from-dark-surface via-brand-secondary/15 to-brand-bright/10 p-6 shadow-neon-subtle">
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <div className="inline-flex items-center gap-1.5 rounded-full border border-brand-bright/40 bg-brand-bright/10 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-brand-bright">
-              <Sparkles className="h-3 w-3" /> Real-Time Intelligence
-            </div>
-            <h2 className="mt-2 text-xl font-extrabold tracking-tight text-dark-text dark:text-dark-text light:text-light-text">
-              Predict & Intervene on Customer Churn
-            </h2>
-            <p className="mt-1 text-xs text-dark-muted dark:text-dark-muted light:text-light-muted max-w-xl">
-              Evaluate real-time churn probability, inspect SHAP local attribution factors, and trigger automated personalized retention recommendations.
-            </p>
-          </div>
-          <button
-            onClick={onNavigateToPredict}
-            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-brand-secondary to-brand-bright px-5 py-3 text-xs font-bold text-white shadow-neon transition-all hover:opacity-95 hover:scale-[1.02]"
-          >
-            Predict Customer <ArrowRight className="h-4 w-4" />
-          </button>
+    <section className="metric-grid" aria-label="Key churn metrics">
+      <Metric label="Customers monitored" value={compactNumber(total_customers)} detail="Across your customer base" icon={Users} tone="tone-teal" />
+      <Metric label="Overall churn rate" value={churnLabel} detail="Historical customer churn" icon={Waves} tone="tone-coral" note={overall_churn_rate > 0.25 ? 'Above 25% benchmark' : undefined} />
+      <Metric label="High-risk customers" value={compactNumber(high_risk_count)} detail="Priority for retention outreach" icon={BadgeAlert} tone="tone-amber" note={highRiskShare ? `${highRiskShare}% of base` : undefined} />
+      <Metric label="Average risk score" value={`${(avg_churn_probability * 100).toFixed(1)}%`} detail="Mean predicted churn probability" icon={ShieldCheck} tone="tone-blue" />
+    </section>
+
+    <section className="insight-banner">
+      <div className="insight-symbol"><Sparkles size={19} /></div>
+      <div className="insight-copy"><span>RETENTION SIGNAL</span><strong>{high_risk_count ? `${compactNumber(high_risk_count)} customers may need attention` : 'Your retention workspace is ready'}</strong><p>Use individual risk scores and model explanations to focus outreach where it matters.</p></div>
+      <div className="insight-side"><div className="insight-score">{highRiskShare}<small>%</small></div><span>of customers at high risk</span></div>
+    </section>
+
+    <section className="charts-grid">
+      <article className="content-card risk-card">
+        <div className="card-heading"><div><span className="section-kicker">PORTFOLIO MIX</span><h3>Risk distribution</h3></div><span className="card-period">Current view</span></div>
+        <div className="risk-chart-wrap">
+          {risk_distribution.length ? <ResponsiveContainer width="100%" height="100%"><PieChart><Pie data={risk_distribution} dataKey="count" nameKey="risk_level" cx="50%" cy="50%" innerRadius={66} outerRadius={88} paddingAngle={3} stroke="none">{risk_distribution.map((entry) => <Cell key={entry.risk_level} fill={RISK_COLORS[entry.risk_level] || '#a78bfa'} />)}</Pie><Tooltip formatter={(value, name) => [value, `${name} risk`]} contentStyle={{ background: 'var(--surface-raised)', border: '1px solid var(--border)', borderRadius: 12, color: 'var(--text)' }} /></PieChart></ResponsiveContainer> : <div className="chart-empty">No scored customers yet</div>}
+          <div className="donut-center"><strong>{compactNumber(total_customers)}</strong><span>customers</span></div>
         </div>
-      </div>
+        <div className="risk-legend">{['LOW', 'MEDIUM', 'HIGH'].map((level) => { const item = risk_distribution.find((entry) => entry.risk_level === level); return <div key={level} className="legend-item"><i style={{ background: RISK_COLORS[level] }} /><span>{level.toLowerCase()}</span><strong>{compactNumber(item?.count || 0)}</strong></div>; })}</div>
+      </article>
 
-      {/* KPI Metric Cards */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <MetricCard
-          title="Total Monitored"
-          value={total_customers.toLocaleString()}
-          subtitle="Active subscribed accounts"
-          icon={Users}
-        />
-        <MetricCard
-          title="Overall Churn Rate"
-          value={`${(overall_churn_rate * 100).toFixed(1)}%`}
-          subtitle="Historical & predicted churn baseline"
-          icon={TrendingDown}
-          trend={overall_churn_rate > 0.25 ? "Above Target" : "Optimal"}
-          trendPositive={overall_churn_rate <= 0.25}
-        />
-        <MetricCard
-          title="High Risk Accounts"
-          value={high_risk_count.toLocaleString()}
-          subtitle="P(Churn) >= 70% requiring intervention"
-          icon={AlertTriangle}
-        />
-        <MetricCard
-          title="Avg Churn Probability"
-          value={`${(avg_churn_probability * 100).toFixed(1)}%`}
-          subtitle="Across monitored population"
-          icon={Percent}
-        />
-      </div>
+      <article className="content-card contract-card">
+        <div className="card-heading"><div><span className="section-kicker">CHURN PATTERNS</span><h3>Risk by contract type</h3></div><span className="chart-badge"><span /> Customer churn</span></div>
+        <div className="contract-chart"><ResponsiveContainer width="100%" height="100%"><BarChart data={churn_by_contract} margin={{ top: 14, right: 10, left: -22, bottom: 0 }}><CartesianGrid vertical={false} stroke="var(--border)" strokeDasharray="3 5" /><XAxis dataKey="category" axisLine={false} tickLine={false} tick={{ fill: 'var(--muted)', fontSize: 11 }} dy={10} /><YAxis axisLine={false} tickLine={false} tick={{ fill: 'var(--muted)', fontSize: 10 }} tickFormatter={(value) => `${Math.round(value * 100)}%`} /><Tooltip formatter={(value) => [`${(value * 100).toFixed(1)}%`, 'Churn rate']} contentStyle={{ background: 'var(--surface-raised)', border: '1px solid var(--border)', borderRadius: 12, color: 'var(--text)' }} /><Bar dataKey="churn_rate" fill="#39bda0" radius={[7, 7, 2, 2]} maxBarSize={56} /></BarChart></ResponsiveContainer></div>
+        <p className="chart-footnote"><CircleHelp size={14} /> Compare contract cohorts to find opportunities for longer-term retention.</p>
+      </article>
+    </section>
 
-      {/* Analytics & Cohort Visualizations */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        {/* Risk Distribution Donut Chart */}
-        <div className="rounded-xl border border-dark-border dark:border-dark-border light:border-light-border bg-dark-surface dark:bg-dark-surface light:bg-light-surface p-5">
-          <div className="flex items-center justify-between pb-3 border-b border-dark-border dark:border-dark-border light:border-light-border">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-dark-text dark:text-dark-text light:text-light-text">
-              Risk Tier Distribution
-            </h3>
-            <span className="text-[10px] text-dark-muted">Active Segmentation</span>
-          </div>
-
-          <div className="mt-4 h-56">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={risk_distribution}
-                  dataKey="count"
-                  nameKey="risk_level"
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={55}
-                  outerRadius={80}
-                  paddingAngle={4}
-                >
-                  {risk_distribution.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={RISK_COLORS[entry.risk_level] || '#A855F7'} />
-                  ))}
-                </Pie>
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: '#111019',
-                    border: '1px solid #2A2435',
-                    borderRadius: '8px',
-                    fontSize: '11px'
-                  }}
-                />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-
-          <div className="mt-2 flex justify-center gap-4 text-xs">
-            {risk_distribution.map((r, i) => (
-              <div key={i} className="flex items-center gap-1.5">
-                <span className="h-2 w-2 rounded-full" style={{ backgroundColor: RISK_COLORS[r.risk_level] }} />
-                <span className="text-[11px] text-dark-muted dark:text-dark-muted light:text-light-muted">
-                  {r.risk_level}: <strong className="text-dark-text dark:text-dark-text light:text-light-text">{r.count}</strong>
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Churn Rate by Contract Bar Chart */}
-        <div className="rounded-xl border border-dark-border dark:border-dark-border light:border-light-border bg-dark-surface dark:bg-dark-surface light:bg-light-surface p-5 lg:col-span-2">
-          <div className="flex items-center justify-between pb-3 border-b border-dark-border dark:border-dark-border light:border-light-border">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-dark-text dark:text-dark-text light:text-light-text">
-              Churn Rate by Contract Type
-            </h3>
-            <span className="text-[10px] text-dark-muted">Key Risk Driver</span>
-          </div>
-
-          <div className="mt-4 h-56">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={churn_by_contract} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#2A2435" opacity={0.5} />
-                <XAxis dataKey="category" stroke="#A6A1B5" fontSize={11} />
-                <YAxis
-                  stroke="#A6A1B5"
-                  fontSize={11}
-                  tickFormatter={(val) => `${(val * 100).toFixed(0)}%`}
-                />
-                <Tooltip
-                  formatter={(val) => [`${(val * 100).toFixed(1)}%`, 'Churn Rate']}
-                  contentStyle={{
-                    backgroundColor: '#111019',
-                    border: '1px solid #2A2435',
-                    borderRadius: '8px',
-                    fontSize: '11px'
-                  }}
-                />
-                <Bar dataKey="churn_rate" fill="#A855F7" radius={[6, 6, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-
-          <p className="mt-2 text-[11px] text-dark-muted dark:text-dark-muted light:text-light-muted text-center">
-            Month-to-month contracts demonstrate significantly higher churn propensity than multi-year commitments.
-          </p>
-        </div>
-      </div>
-
-      {/* Recent Predictions Stream */}
-      <div className="rounded-xl border border-dark-border dark:border-dark-border light:border-light-border bg-dark-surface dark:bg-dark-surface light:bg-light-surface p-5">
-        <div className="flex items-center justify-between pb-4 border-b border-dark-border dark:border-dark-border light:border-light-border">
-          <div>
-            <h3 className="text-xs font-bold uppercase tracking-wider text-dark-text dark:text-dark-text light:text-light-text">
-              Recent Prediction Inferences
-            </h3>
-            <p className="text-[11px] text-dark-muted">Latest customer scores evaluated by ML engine</p>
-          </div>
-          <span className="text-xs font-medium text-brand-bright">Live Stream</span>
-        </div>
-
-        <div className="mt-4 overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead>
-              <tr className="border-b border-dark-border dark:border-dark-border light:border-light-border text-[11px] font-semibold uppercase text-dark-muted">
-                <th className="pb-3">Customer ID</th>
-                <th className="pb-3">Risk Tier</th>
-                <th className="pb-3">Churn Probability</th>
-                <th className="pb-3">Primary Risk Factor</th>
-                <th className="pb-3 text-right">Action</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-dark-border/50 dark:divide-dark-border/50 light:divide-light-border/60">
-              {recent_predictions.length > 0 ? (
-                recent_predictions.map((pred, i) => (
-                  <tr key={i} className="hover:bg-dark-secondary/40 dark:hover:bg-dark-secondary/40 light:hover:bg-light-secondary/50">
-                    <td className="py-3 font-mono font-medium text-dark-text dark:text-dark-text light:text-light-text">
-                      {pred.customer_id}
-                    </td>
-                    <td className="py-3">
-                      <RiskBadge level={pred.risk_level} size="sm" />
-                    </td>
-                    <td className="py-3 font-mono font-semibold">
-                      <span className={pred.churn_probability >= 0.7 ? 'text-rose-400' : pred.churn_probability >= 0.4 ? 'text-amber-400' : 'text-emerald-400'}>
-                        {(pred.churn_probability * 100).toFixed(1)}%
-                      </span>
-                    </td>
-                    <td className="py-3 text-dark-muted dark:text-dark-muted light:text-light-muted">
-                      {pred.top_factors && pred.top_factors[0] ? pred.top_factors[0].feature_label : 'Tenure & Contract'}
-                    </td>
-                    <td className="py-3 text-right">
-                      <button
-                        onClick={() => onSelectCustomer && onSelectCustomer(pred.customer_id)}
-                        className="text-xs font-semibold text-brand-bright hover:underline"
-                      >
-                        Inspect →
-                      </button>
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={5} className="py-6 text-center text-dark-muted">
-                    No predictions recorded yet. Run a prediction to populate this stream.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  );
+    <section className="content-card activity-card">
+      <div className="card-heading activity-heading"><div><span className="section-kicker">LATEST SCORING ACTIVITY</span><h3>Recently assessed customers</h3></div><button type="button" className="text-button" onClick={onNavigateToPredict}>New assessment <ArrowRight size={15} /></button></div>
+      <div className="table-scroll"><table className="activity-table"><thead><tr><th>Customer</th><th>Risk level</th><th>Probability</th><th>Top signal</th><th aria-label="Action" /></tr></thead><tbody>
+        {recent_predictions.length ? recent_predictions.slice(0, 6).map((prediction, index) => <tr key={prediction.customer_id || index}><td><button type="button" className="customer-link" onClick={() => onSelectCustomer?.(prediction.customer_id)}><span className="customer-avatar">{String(prediction.customer_id || 'C').slice(-2, -1).toUpperCase()}</span><span><strong>{prediction.customer_id || 'Customer'}</strong><small>Churn assessment</small></span></button></td><td><RiskBadge level={prediction.risk_level} size="sm" /></td><td><div className="probability-cell"><span>{(prediction.churn_probability * 100).toFixed(1)}%</span><i><b style={{ width: `${Math.max(0, Math.min(100, prediction.churn_probability * 100))}%`, background: RISK_COLORS[prediction.risk_level] || '#39bda0' }} /></i></div></td><td className="signal-cell">{prediction.top_factors?.[0]?.feature_label || 'Profile signals'}</td><td><button type="button" className="row-action" aria-label={`Inspect ${prediction.customer_id}`} onClick={() => onSelectCustomer?.(prediction.customer_id)}><ArrowRight size={16} /></button></td></tr>) : <tr><td colSpan="5"><div className="table-empty"><ShieldCheck size={18} /> No assessments yet. Start with a customer risk assessment.</div></td></tr>}
+      </tbody></table></div>
+      {recent_predictions.length > 6 && <div className="table-footer">Showing the latest 6 of {recent_predictions.length} assessments <ArrowDownRight size={14} /></div>}
+    </section>
+  </div>;
 }

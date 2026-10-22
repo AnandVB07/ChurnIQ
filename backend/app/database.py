@@ -4,7 +4,7 @@ from sqlalchemy.orm import declarative_base, sessionmaker
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
-DEFAULT_DB_PATH = BASE_DIR / "churn_system.db"
+DEFAULT_DB_PATH = Path("/tmp/churn_system.db") if os.getenv("VERCEL") else BASE_DIR / "churn_system.db"
 
 DATABASE_URL = os.getenv("DATABASE_URL", f"sqlite:///{DEFAULT_DB_PATH}")
 
