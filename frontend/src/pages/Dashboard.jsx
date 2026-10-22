@@ -10,7 +10,7 @@ import {
 import RiskBadge from '../components/RiskBadge';
 import { apiService } from '../services/api';
 
-const RISK_COLORS = { LOW: '#36c69a', MEDIUM: '#f4b860', HIGH: '#f17664' };
+const RISK_COLORS = { LOW: '#66836d', MEDIUM: '#bf914b', HIGH: '#b96542' };
 const compactNumber = (value = 0) => new Intl.NumberFormat('en', { notation: value > 999 ? 'compact' : 'standard', maximumFractionDigits: 1 }).format(value);
 
 function LoadingState() {
@@ -76,7 +76,7 @@ export default function Dashboard({ onNavigateToPredict, onSelectCustomer }) {
       <article className="content-card risk-card">
         <div className="card-heading"><div><span className="section-kicker">PORTFOLIO MIX</span><h3>Risk distribution</h3></div><span className="card-period">Current view</span></div>
         <div className="risk-chart-wrap">
-          {risk_distribution.length ? <ResponsiveContainer width="100%" height="100%"><PieChart><Pie data={risk_distribution} dataKey="count" nameKey="risk_level" cx="50%" cy="50%" innerRadius={66} outerRadius={88} paddingAngle={3} stroke="none">{risk_distribution.map((entry) => <Cell key={entry.risk_level} fill={RISK_COLORS[entry.risk_level] || '#a78bfa'} />)}</Pie><Tooltip formatter={(value, name) => [value, `${name} risk`]} contentStyle={{ background: 'var(--surface-raised)', border: '1px solid var(--border)', borderRadius: 12, color: 'var(--text)' }} /></PieChart></ResponsiveContainer> : <div className="chart-empty">No scored customers yet</div>}
+          {risk_distribution.length ? <ResponsiveContainer width="100%" height="100%"><PieChart><Pie data={risk_distribution} dataKey="count" nameKey="risk_level" cx="50%" cy="50%" innerRadius={66} outerRadius={88} paddingAngle={3} stroke="none">{risk_distribution.map((entry) => <Cell key={entry.risk_level} fill={RISK_COLORS[entry.risk_level] || '#718578'} />)}</Pie><Tooltip formatter={(value, name) => [value, `${name} risk`]} contentStyle={{ background: 'var(--surface-raised)', border: '1px solid var(--border)', borderRadius: 12, color: 'var(--text)' }} /></PieChart></ResponsiveContainer> : <div className="chart-empty">No scored customers yet</div>}
           <div className="donut-center"><strong>{compactNumber(total_customers)}</strong><span>customers</span></div>
         </div>
         <div className="risk-legend">{['LOW', 'MEDIUM', 'HIGH'].map((level) => { const item = risk_distribution.find((entry) => entry.risk_level === level); return <div key={level} className="legend-item"><i style={{ background: RISK_COLORS[level] }} /><span>{level.toLowerCase()}</span><strong>{compactNumber(item?.count || 0)}</strong></div>; })}</div>
@@ -84,7 +84,7 @@ export default function Dashboard({ onNavigateToPredict, onSelectCustomer }) {
 
       <article className="content-card contract-card">
         <div className="card-heading"><div><span className="section-kicker">CHURN PATTERNS</span><h3>Risk by contract type</h3></div><span className="chart-badge"><span /> Customer churn</span></div>
-        <div className="contract-chart"><ResponsiveContainer width="100%" height="100%"><BarChart data={churn_by_contract} margin={{ top: 14, right: 10, left: -22, bottom: 0 }}><CartesianGrid vertical={false} stroke="var(--border)" strokeDasharray="3 5" /><XAxis dataKey="category" axisLine={false} tickLine={false} tick={{ fill: 'var(--muted)', fontSize: 11 }} dy={10} /><YAxis axisLine={false} tickLine={false} tick={{ fill: 'var(--muted)', fontSize: 10 }} tickFormatter={(value) => `${Math.round(value * 100)}%`} /><Tooltip formatter={(value) => [`${(value * 100).toFixed(1)}%`, 'Churn rate']} contentStyle={{ background: 'var(--surface-raised)', border: '1px solid var(--border)', borderRadius: 12, color: 'var(--text)' }} /><Bar dataKey="churn_rate" fill="#39bda0" radius={[7, 7, 2, 2]} maxBarSize={56} /></BarChart></ResponsiveContainer></div>
+        <div className="contract-chart"><ResponsiveContainer width="100%" height="100%"><BarChart data={churn_by_contract} margin={{ top: 14, right: 10, left: -22, bottom: 0 }}><CartesianGrid vertical={false} stroke="var(--border)" strokeDasharray="3 5" /><XAxis dataKey="category" axisLine={false} tickLine={false} tick={{ fill: 'var(--muted)', fontSize: 11 }} dy={10} /><YAxis axisLine={false} tickLine={false} tick={{ fill: 'var(--muted)', fontSize: 10 }} tickFormatter={(value) => `${Math.round(value * 100)}%`} /><Tooltip formatter={(value) => [`${(value * 100).toFixed(1)}%`, 'Churn rate']} contentStyle={{ background: 'var(--surface-raised)', border: '1px solid var(--border)', borderRadius: 12, color: 'var(--text)' }} /><Bar dataKey="churn_rate" fill="var(--accent)" radius={[7, 7, 2, 2]} maxBarSize={56} /></BarChart></ResponsiveContainer></div>
         <p className="chart-footnote"><CircleHelp size={14} /> Compare contract cohorts to find opportunities for longer-term retention.</p>
       </article>
     </section>

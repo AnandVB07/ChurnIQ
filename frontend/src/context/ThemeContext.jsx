@@ -6,7 +6,7 @@ export function ThemeProvider({ children }) {
   const [theme, setTheme] = useState(() => {
     const saved = localStorage.getItem('churniq-theme');
     if (saved === 'light' || saved === 'dark') return saved;
-    return 'dark'; // Default to Futuristic Dark Electric Violet
+    return 'light';
   });
 
   useEffect(() => {

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import {
   Activity, ArrowUpRight, BarChart3, BrainCircuit, CircleHelp,
-  LayoutDashboard, Menu, Moon, ShieldCheck, Sparkles, Sun, Users, X,
+  LayoutDashboard, Menu, Moon, ShieldCheck, Sparkles, Sun, Users, UserRound, X,
 } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { apiService } from '../services/api';
@@ -12,9 +12,10 @@ const navItems = [
   { id: 'predict', label: 'Risk assessment', icon: BrainCircuit, badge: 'AI' },
   { id: 'analytics', label: 'Analytics', icon: BarChart3 },
   { id: 'model', label: 'Model insights', icon: Sparkles },
+  { id: 'profile', label: 'My profile', icon: UserRound },
 ];
 
-export default function AppLayout({ currentTab, onSelectTab, children }) {
+export default function AppLayout({ currentTab, onSelectTab, user, children }) {
   const { toggleTheme, isDark } = useTheme();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [apiStatus, setApiStatus] = useState('checking');
@@ -72,7 +73,7 @@ export default function AppLayout({ currentTab, onSelectTab, children }) {
             <div className="engine-caption">XGBoost · SHAP explanations</div>
           </div>
           <button type="button" className="help-link" onClick={() => selectTab('model')}><CircleHelp size={16} /> Model documentation <ArrowUpRight size={14} /></button>
-          <div className="profile-row"><span className="avatar">CI</span><span className="profile-copy"><strong>ChurnIQ workspace</strong><small>Customer success</small></span><span className="online-indicator" /></div>
+          <button type="button" className={`profile-row profile-row-button ${currentTab === 'profile' ? 'profile-row-active' : ''}`} onClick={() => selectTab('profile')}><span className="avatar">{(user?.name || 'CI').split(/\s+/).map((part) => part[0]).join('').slice(0, 2).toUpperCase()}</span><span className="profile-copy"><strong>{user?.name || 'Workspace owner'}</strong><small>{user?.email || 'My profile & settings'}</small></span><span className="online-indicator" /></button>
         </div>
       </aside>
 
@@ -94,7 +95,7 @@ export default function AppLayout({ currentTab, onSelectTab, children }) {
           <div className="topbar-actions">
             <div className="topbar-live"><i className={`status-dot status-${apiStatus}`} />{apiStatus === 'online' ? 'Systems operational' : apiStatus === 'checking' ? 'Connecting' : 'API disconnected'}</div>
             <button type="button" className="icon-button theme-toggle" onClick={toggleTheme} aria-label={isDark ? 'Switch to light theme' : 'Switch to dark theme'}>{isDark ? <Sun size={17} /> : <Moon size={17} />}</button>
-            <span className="avatar topbar-avatar">CI</span>
+            <button type="button" className="avatar topbar-avatar profile-trigger" onClick={() => selectTab('profile')} aria-label="Open profile">{(user?.name || 'CI').split(/\s+/).map((part) => part[0]).join('').slice(0, 2).toUpperCase()}</button>
           </div>
         </header>
         <main className="page-content"><div className="page-width">{children}</div></main>

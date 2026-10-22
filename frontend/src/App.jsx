@@ -8,10 +8,25 @@ import CustomerExplorer from './pages/CustomerExplorer';
 import CustomerDetails from './pages/CustomerDetails';
 import Analytics from './pages/Analytics';
 import ModelInsights from './pages/ModelInsights';
+import Login from './pages/Login';
+import Profile from './pages/Profile';
 
 export default function App() {
   const [currentTab, setCurrentTab] = useState('dashboard');
   const [selectedCustomerId, setSelectedCustomerId] = useState(null);
+  const [session, setSession] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('churniq-session') || 'null'); } catch { return null; }
+  });
+
+  const signIn = (user) => {
+    localStorage.setItem('churniq-session', JSON.stringify(user));
+    setSession(user);
+  };
+  const signOut = () => {
+    localStorage.removeItem('churniq-session');
+    setSession(null);
+    setCurrentTab('dashboard');
+  };
 
   const handleSelectCustomer = (customerId) => {
     setSelectedCustomerId(customerId);
@@ -47,6 +62,8 @@ export default function App() {
         return <Analytics />;
       case 'model':
         return <ModelInsights />;
+      case 'profile':
+        return <Profile user={session} onSave={(user) => signIn(user)} onSignOut={signOut} />;
       default:
         return (
           <Dashboard
@@ -59,8 +76,10 @@ export default function App() {
 
   return (
     <ThemeProvider>
+      {!session ? <Login onSignIn={signIn} /> : (
       <AppLayout
         currentTab={currentTab === 'customer_details' ? 'customers' : currentTab}
+        user={session}
         onSelectTab={(tab) => {
           setSelectedCustomerId(null);
           setCurrentTab(tab);
@@ -68,6 +87,7 @@ export default function App() {
       >
         {renderContent()}
       </AppLayout>
+      )}
     </ThemeProvider>
   );
 }
