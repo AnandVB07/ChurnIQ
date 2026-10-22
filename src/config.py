@@ -6,9 +6,9 @@ from typing import Dict, List
 BASE_DIR = Path(__file__).resolve().parent.parent
 DATA_DIR = BASE_DIR / "data"
 RAW_DATA_DIR = DATA_DIR / "raw"
-PROCESSED_DATA_DIR = DATA_DIR / "processed"
+PROCESSED_DATA_DIR = Path("/tmp/churniq/processed") if os.getenv("VERCEL") else DATA_DIR / "processed"
 MODELS_DIR = BASE_DIR / "models"
-MLRUNS_DIR = BASE_DIR / "mlruns"
+MLRUNS_DIR = Path("/tmp/churniq/mlruns") if os.getenv("VERCEL") else BASE_DIR / "mlruns"
 
 # File Paths
 RAW_DATA_FILE = RAW_DATA_DIR / "telco_churn.csv"
@@ -19,10 +19,12 @@ BEST_MODEL_FILE = MODELS_DIR / "best_model.pkl"
 PREPROCESSOR_FILE = MODELS_DIR / "preprocessor.pkl"
 MODEL_METADATA_FILE = MODELS_DIR / "model_metadata.json"
 
-# Ensure directories exist
-RAW_DATA_DIR.mkdir(parents=True, exist_ok=True)
+# Only create writable runtime directories. Vercel's deployed source tree is
+# read-only, while its /tmp directory is writable for the lifetime of an instance.
 PROCESSED_DATA_DIR.mkdir(parents=True, exist_ok=True)
-MODELS_DIR.mkdir(parents=True, exist_ok=True)
+if not os.getenv("VERCEL"):
+    RAW_DATA_DIR.mkdir(parents=True, exist_ok=True)
+    MODELS_DIR.mkdir(parents=True, exist_ok=True)
 
 # Dataset Configuration
 TARGET_COL = "Churn"
