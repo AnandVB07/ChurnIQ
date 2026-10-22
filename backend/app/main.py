@@ -46,6 +46,12 @@ app.include_router(analytics.router, prefix="/api")
 
 @app.get("/")
 def root():
+    from pathlib import Path
+    from fastapi.responses import FileResponse
+
+    frontend_index = Path(__file__).resolve().parents[2] / "frontend" / "dist" / "index.html"
+    if frontend_index.exists():
+        return FileResponse(frontend_index)
     return {
         "message": "Customer Churn Intelligence System API",
         "docs_url": "/docs",
