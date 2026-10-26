@@ -36,3 +36,10 @@ build/
 .DS_Store
 Thumbs.db
 *.swp
+
+# Pytest and coverage artifacts
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
