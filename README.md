@@ -1,332 +1,131 @@
-# ChurnIQ — Customer Churn Intelligence & Retention Platform
+# ChurnIQ
 
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.111.0-009688?style=flat&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
-[![React](https://img.shields.io/badge/React-18.3-61DAFB?style=flat&logo=react&logoColor=black)](https://reactjs.org)
-[![XGBoost](https://img.shields.io/badge/XGBoost-3.4.1-EB392E?style=flat)](https://xgboost.ai)
-[![SHAP](https://img.shields.io/badge/SHAP-TreeExplainer-FF6F00?style=flat)](https://shap.readthedocs.io)
-[![MLflow](https://img.shields.io/badge/MLflow-Tracking-0194E2?style=flat&logo=mlflow&logoColor=white)](https://mlflow.org)
-[![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?style=flat&logo=docker&logoColor=white)](https://docker.com)
-[![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+<p align="center">
+  <strong>Turn churn signals into timely customer-retention actions.</strong><br />
+  An explainable churn-prediction workspace for exploring customer risk, understanding model decisions, and prioritizing follow-up.
+</p>
 
-An enterprise-grade Customer Churn Prediction & Retention Intelligence System. The platform predicts customer attrition risk using tuned gradient boosted decision trees (XGBoost), calculates calibrated churn probabilities, classifies business risk tiers, generates local and global feature attributions via SHAP TreeExplainer, and delivers targeted business retention interventions.
-
----
-
-## System Architecture
-
-```
-                                 ┌─────────────────────────┐
-                                 │     React Dashboard     │
-                                 │  (Vite + Tailwind CSS)  │
-                                 └────────────┬────────────┘
-                                              │ HTTP / JSON
-                                              ▼
-                                 ┌─────────────────────────┐
-                                 │      FastAPI REST       │
-                                 │    Prediction Engine    │
-                                 └────────────┬────────────┘
-                                              │
-                      ┌───────────────────────┴───────────────────────┐
-                      ▼                                               ▼
-         ┌─────────────────────────┐                     ┌─────────────────────────┐
-         │  PostgreSQL / SQLAlchemy│                     │    Scikit-Learn / SHAP  │
-         │  • Customers            │                     │  • Preprocessor (pkl)   │
-         │  • Predictions          │                     │  • Tuned XGBoost (pkl)  │
-         │  • Prediction Factors   │                     │  • TreeExplainer Engine │
-         └─────────────────────────┘                     └─────────────────────────┘
-```
+<p align="center">
+  <a href="https://fastapi.tiangolo.com/"><img src="https://img.shields.io/badge/API-FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI" /></a>
+  <a href="https://react.dev/"><img src="https://img.shields.io/badge/UI-React-149ECA?style=for-the-badge&logo=react&logoColor=white" alt="React" /></a>
+  <a href="https://xgboost.ai/"><img src="https://img.shields.io/badge/Model-XGBoost-EA4335?style=for-the-badge" alt="XGBoost" /></a>
+  <a href="https://shap.readthedocs.io/"><img src="https://img.shields.io/badge/Explainability-SHAP-6A5ACD?style=for-the-badge" alt="SHAP" /></a>
+  <a href="https://www.docker.com/"><img src="https://img.shields.io/badge/Run-Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker" /></a>
+</p>
 
 ---
 
-## Core Product Workflow
+## At a glance
 
-1. **Customer Ingestion & Validation**: Raw profile attributes (demographics, tenure, contracts, subscribed services, monthly/total spend) are validated via Pydantic schemas.
-2. **Feature Engineering**: Calculates domain features including `avg_monthly_spend`, `charge_ratio`, `service_count`, and `tenure_group`.
-3. **Leakage-Free Preprocessing**: Applies the fitted Scikit-Learn `ColumnTransformer` with median imputation, `StandardScaler`, and `OneHotEncoder`.
-4. **XGBoost Inference**: Evaluates calibrated churn probability $P(\text{Churn} = 1)$ and assigns binary classification.
-5. **Business Risk Tiering**: Maps probabilities into configurable risk tiers:
-   - **LOW**: $P \le 0.39$
-   - **MEDIUM**: $0.40 \le P \le 0.69$
-   - **HIGH**: $P \ge 0.70$
-6. **Local SHAP Attribution**: Computes exact Shapley values to pinpoint top factors pushing risk up or down for each customer.
-7. **Retention Recommendation Engine**: Translates risk level and driving factors into targeted business interventions.
-8. **Relational Persistence**: Saves customer profile, prediction score, and attribution factors to PostgreSQL.
-9. **Interactive Dashboard**: Displays gauges, factor breakdowns, cohort analyses, and real-time streams.
+ChurnIQ uses a trained XGBoost model to estimate customer churn probability. It turns that score into a risk tier, explains contributing factors with SHAP, and presents retention suggestions in a React dashboard.
 
----
+<p align="center">
+  <strong>ROC-AUC&nbsp; 0.8479</strong> &nbsp;·&nbsp;
+  <strong>Recall&nbsp; 79.95%</strong> &nbsp;·&nbsp;
+  <strong>Precision&nbsp; 51.73%</strong> &nbsp;·&nbsp;
+  <strong>F1&nbsp; 0.6282</strong>
+</p>
 
-## Technology Stack
+<sub>Stored evaluation snapshot from the held-out test set in models/model_metadata.json. Results describe this dataset and are not a guarantee of future performance.</sub>
 
-| Layer | Technologies |
-| :--- | :--- |
-| **Machine Learning** | Python 3.11+, Scikit-Learn, XGBoost, SHAP, Imbalanced-Learn, Pandas, NumPy, Joblib |
-| **Backend REST API** | FastAPI, Uvicorn, Pydantic V2, SQLAlchemy, Psycopg2, SQLite (Local Fallback) |
-| **Database** | PostgreSQL 15 (Docker) / SQLite3 (Zero-setup local development) |
-| **Frontend UI** | React 18, Vite, Tailwind CSS (Electric Violet Theme), Lucide React, Recharts, Axios |
-| **MLOps & Tracking** | MLflow Experiment Tracking, Model Registry Metadata |
-| **Testing & CI** | Pytest, FastAPI TestClient, Vite Production Builder |
-| **Containerization** | Docker, Docker Compose, Multi-stage Nginx Build |
+## Product flow
 
----
+~~~mermaid
+flowchart TD
+    records["Telco customer records"] --> features["Validate fields and engineer customer features"]
+    features --> prep["Apply fitted scikit-learn preprocessing"]
+    prep --> model["Tuned XGBoost model"]
+    model --> score["Churn probability and configurable risk tier"]
+    score --> explain["SHAP factors and retention suggestions"]
+    dashboard["React dashboard"] <--> api["FastAPI REST API"]
+    api --> features
+    api --> store["SQLAlchemy storage"]
+    store --> db["PostgreSQL in Docker or SQLite locally"]
+    trainer["Training and evaluation pipeline"] --> model
+    trainer --> tracking["MLflow experiment tracking"]
+~~~
 
-## Folder Structure
+## What’s included
 
-```
-customer-churn-intelligence/
-├── data/
-│   ├── raw/
-│   │   └── telco_churn.csv            # 7,043 Telco Customer Churn dataset
-│   ├── processed/
-│   └── README.md                      # Feature dictionary and data documentation
-│
-├── notebooks/
-│   ├── 01_data_understanding.ipynb    # Ingestion & distribution inspection
-│   ├── 02_eda.ipynb                   # Exploratory data analysis & visualizations
-│   ├── 03_preprocessing.ipynb         # Leakage-free transformations & pipelines
-│   ├── 04_model_training.ipynb        # Multi-model training & comparison
-│   ├── 05_model_evaluation.ipynb      # Metrics, ROC-AUC, confusion matrices
-│   └── 06_shap_explainability.ipynb   # SHAP Waterfall & feature importance
-│
-├── src/
-│   ├── __init__.py
-│   ├── config.py                      # Global paths, risk thresholds, MLflow config
-│   ├── data_loader.py                 # Automated download & synthetic fallback
-│   ├── preprocessing.py               # ColumnTransformer & ChurnPreprocessor
-│   ├── feature_engineering.py         # Domain features & spend ratios
-│   ├── train.py                       # Comparison, tuning, MLflow logging, export
-│   ├── evaluate.py                    # Metric calculation & metadata persistence
-│   ├── predict.py                     # ChurnPredictor inference service
-│   └── explain.py                     # ShapExplainerService wrapper
-│
-├── models/
-│   ├── best_model.pkl                 # Serialized Tuned XGBoost model
-│   ├── preprocessor.pkl               # Serialized ColumnTransformer pipeline
-│   └── model_metadata.json            # Evaluated test metrics, confusion matrix & SHAP
-│
-├── backend/
-│   ├── app/
-│   │   ├── __init__.py
-│   │   ├── main.py                    # FastAPI app, CORS, lifespan startup loader
-│   │   ├── database.py                # SQLAlchemy engine & session maker
-│   │   ├── models.py                  # Customer, Prediction, PredictionFactor models
-│   │   ├── schemas.py                 # Pydantic validation schemas
-│   │   ├── services/
-│   │   │   ├── prediction_service.py  # Singleton ML artifact manager
-│   │   │   ├── shap_service.py        # Instance SHAP computation
-│   │   │   ├── recommendation_service.py # Business retention rules engine
-│   │   │   └── analytics_service.py   # Aggregates & database seeder
-│   │   └── routes/
-│   │       ├── health.py              # GET /api/health
-│   │       ├── prediction.py          # POST /api/predict, GET /api/predictions
-│   │       ├── customers.py           # GET /api/customers, GET /api/customers/{id}
-│   │       └── analytics.py           # GET /api/analytics, GET /api/model/metadata
-│   └── requirements.txt
-│
-├── frontend/
-│   ├── src/
-│   │   ├── components/                # MetricCard, RiskBadge, ProbabilityGauge, ShapFactorBar
-│   │   ├── pages/                     # Dashboard, Predict, Explorer, Details, Analytics, ModelInsights
-│   │   ├── layouts/                   # AppLayout with sidebar & header
-│   │   ├── services/                  # api.js (Axios layer)
-│   │   ├── context/                   # ThemeContext (Dark/Light toggle)
-│   │   └── styles/                    # index.css (Electric Violet CSS variables)
-│   ├── package.json
-│   ├── vite.config.js
-│   ├── tailwind.config.js
-│   └── Dockerfile
-│
-├── tests/
-│   ├── conftest.py
-│   ├── test_preprocessing.py          # Transformers & leakage checks
-│   ├── test_prediction.py             # Risk levels & recommendation logic
-│   └── test_api.py                    # FastAPI endpoint tests
-│
-├── Dockerfile                         # Backend container definition
-├── docker-compose.yml                 # Full stack orchestration (DB, API, UI)
-├── requirements.txt                   # Root Python dependencies
-├── pytest.ini
-├── .env.example
-├── .gitignore
-└── README.md
-```
+- **Customer risk assessment** — submit a customer profile and get a churn probability with a LOW, MEDIUM, or HIGH tier.
+- **Explainable predictions** — see the customer attributes that raise or lower the score.
+- **Retention guidance** — surface practical follow-up suggestions alongside each prediction.
+- **Portfolio analytics** — review customer counts, churn distribution, contract patterns, and recent predictions.
+- **Model insights** — view evaluation metrics, confusion matrix, tuned parameters, and global feature importance.
+- **Model development** — compare baseline classifiers, tune XGBoost, export artifacts, and track experiments with MLflow.
 
----
+## Technology
 
-## Installation & Local Development
+| Layer | Stack |
+| --- | --- |
+| Frontend | React 18, Vite 5, Tailwind CSS 3, Recharts, Axios, Lucide |
+| API | Python, FastAPI, Pydantic, Uvicorn |
+| Machine learning | pandas, NumPy, scikit-learn, XGBoost, SHAP, Joblib |
+| Persistence | SQLAlchemy, PostgreSQL 15 in Docker Compose, SQLite fallback |
+| Training | MLflow, imbalanced-learn, GridSearchCV |
+| Delivery | Docker, Docker Compose, Vercel configuration |
 
-### 1. Clone & Setup Python Virtual Environment
-```bash
-git clone https://github.com/your-username/customer-churn-intelligence.git
-cd customer-churn-intelligence
+## Run locally
 
-python -m venv venv
-# On Windows:
-.\venv\Scripts\activate
-# On Linux/macOS:
-source venv/bin/activate
+### 1. Install Python dependencies
 
+~~~bash
+python -m venv .venv
+# Windows: .venv\Scripts\activate
+source .venv/bin/activate
 pip install -r requirements.txt -r requirements-dev.txt
-```
+~~~
 
-### 2. Train Models & Generate Artifacts
-Run the end-to-end training pipeline to download data, train and compare models, run hyperparameter tuning via GridSearchCV, and export serialized artifacts:
-```bash
+### 2. Start the API
+
+The repository includes trained model artifacts. To retrain and refresh them, run the training command first.
+
+~~~bash
 python -m src.train
-```
-
-### 3. Run Backend API Server
-```bash
 uvicorn backend.app.main:app --reload --port 8000
-```
-- API Documentation (Swagger UI): `http://127.0.0.1:8000/docs`
-- Health Check: `http://127.0.0.1:8000/api/health`
+~~~
 
-### 4. Run React Frontend
-In a new terminal:
-```bash
+The API docs are available at http://127.0.0.1:8000/docs.
+
+### 3. Start the dashboard
+
+In a second terminal:
+
+~~~bash
 cd frontend
 npm install
 npm run dev
-```
-Open `http://localhost:5173` in your browser.
+~~~
 
----
+### Docker Compose
 
-## Docker Deployment
+From the repository root, start PostgreSQL, the FastAPI service, and the frontend container:
 
-To launch the full production environment (PostgreSQL 15, FastAPI Backend, and Nginx React Frontend):
-
-```bash
+~~~bash
 docker compose up --build
-```
-- Frontend UI: `http://localhost:3000`
-- Backend API: `http://localhost:8000/docs`
-- PostgreSQL: `localhost:5432`
+~~~
 
----
+## API
 
-## API Reference
+| Method | Endpoint | Purpose |
+| --- | --- | --- |
+| GET | /api/health | Check API and model status |
+| POST | /api/predict | Score a customer and return risk, SHAP factors, and guidance |
+| GET | /api/customers | Browse customers |
+| GET | /api/customers/{customer_id} | View one customer |
+| GET | /api/predictions | Read recent predictions |
+| GET | /api/analytics | Load dashboard aggregates |
+| GET | /api/model/metadata | Read model evaluation details |
 
-### Health Check
-- `GET /api/health`
-  - Verifies database connectivity and confirms whether serialized ML models are loaded into memory.
+## Repository map
 
-### Predictive Inference
-- `POST /api/predict`
-  - Accepts customer attributes, calculates churn probability, predicts class, classifies risk tier, extracts top 5 SHAP factors, generates retention recommendation, and saves record.
-```json
-{
-  "gender": "Female",
-  "SeniorCitizen": 0,
-  "Partner": "No",
-  "Dependents": "No",
-  "tenure": 3,
-  "PhoneService": "Yes",
-  "MultipleLines": "No",
-  "InternetService": "Fiber optic",
-  "OnlineSecurity": "No",
-  "OnlineBackup": "No",
-  "DeviceProtection": "No",
-  "TechSupport": "No",
-  "StreamingTV": "Yes",
-  "StreamingMovies": "Yes",
-  "Contract": "Month-to-month",
-  "PaperlessBilling": "Yes",
-  "PaymentMethod": "Electronic check",
-  "MonthlyCharges": 89.85,
-  "TotalCharges": 269.55
-}
-```
-**Response Sample**:
-```json
-{
-  "id": 1,
-  "customer_id": "CUST-48291",
-  "churn_probability": 0.8241,
-  "prediction": "CHURN",
-  "risk_level": "HIGH",
-  "top_factors": [
-    {
-      "feature": "Contract_Month-to-month",
-      "feature_label": "Month-to-Month Contract",
-      "shap_value": 0.6807,
-      "impact": "INCREASES_RISK",
-      "abs_impact": 0.6807
-    },
-    {
-      "feature": "charge_ratio",
-      "feature_label": "Monthly-to-Total Spend Ratio",
-      "shap_value": 0.3609,
-      "impact": "INCREASES_RISK",
-      "abs_impact": 0.3609
-    }
-  ],
-  "recommendation": {
-    "priority": "URGENT",
-    "summary": "High churn risk detected. Immediate proactive intervention required.",
-    "action_items": [
-      "Offer a 15% discount on an annual contract lock-in plan.",
-      "Review billing plan and propose a tailored bundle or loyalty rate.",
-      "Assign a dedicated customer success specialist for an onboarding health check.",
-      "Provide 6 months of complimentary Premium 24/7 Tech Support."
-    ]
-  },
-  "model_name": "Tuned XGBoost",
-  "model_version": "1.0.0"
-}
-```
-
-### Customer Management & Analytics
-- `GET /api/customers?page=1&page_size=15&search=...&risk_level=HIGH`
-- `GET /api/customers/{customer_id}`
-- `GET /api/predictions?limit=20`
-- `GET /api/analytics`
-- `GET /api/model/metadata`
-
----
-
-## Machine Learning Interview Deep-Dive
-
-### 1. Why is Customer Churn a Classification Problem?
-Customer churn represents binary attrition ($y \in \{0, 1\}$) over a defined business horizon (e.g. within the next 30-90 days). The objective is estimating the posterior probability $P(Y = 1 \mid X)$ rather than predicting continuous spend.
-
-### 2. Why Compare Logistic Regression, Random Forest, and XGBoost?
-- **Logistic Regression (Baseline)**: Provides a linear decision boundary benchmark. Fast, interpretable, and establishes whether nonlinear interactions are necessary.
-- **Decision Tree**: Non-parametric tree baseline to observe decision split thresholds.
-- **Random Forest**: Bagging ensemble that reduces variance, handles non-linearities, and averages out individual tree overfitting.
-- **XGBoost**: Gradient boosted decision tree that builds shallow trees sequentially to minimize residual loss. Handles sparse one-hot encoded categories, regularizes tree complexity ($\gamma, \lambda$), and achieves superior ROC-AUC on tabular data.
-
-### 3. Why Accuracy is Insufficient & Why Recall Matters in Churn
-In telecom datasets with ~26% churn rate, a naive majority-class classifier predicting "No Churn" for everyone achieves **74% accuracy**, yet fails to detect a single churner.
-- **False Negative (FN)**: Customer is predicted to stay, but actually churns. **Cost = Lost Lifetime Value (LTV)** (high business cost).
-- **False Positive (FP)**: Customer is predicted to churn, but would have stayed. **Cost = Cost of retention offer/discount** (low cost).
-Because $Cost(FN) \gg Cost(FP)$, **Recall** and **ROC-AUC** are the primary decision metrics. The tuned model prioritizes high Recall (~80%) to capture the vast majority of at-risk revenue.
-
-### 4. Preventing Data Leakage
-Data leakage occurs when information from outside the training dataset is used to build the model:
-1. **Train/Test Split First**: Splitting occurs strictly before computing any statistics.
-2. **ColumnTransformer Fitting**: Imputer medians and StandardScaler means/standard deviations are learned **only** on $X_{\text{train}}$. $X_{\text{test}}$ and production inference inputs are transformed using the saved preprocessor parameters without re-fitting.
-3. **Resampling / Class Weighting**: Imbalance handling (e.g. `scale_pos_weight` or SMOTE) is applied strictly within training folds, never globally before splitting.
-
-### 5. What SHAP (SHapley Additive exPlanations) Does
-SHAP applies cooperative game theory (Shapley values) to compute the marginal contribution of each feature to the difference between the model's output and the expected baseline:
-$$f(x) = \phi_0 + \sum_{i=1}^{M} \phi_i$$
-Where $\phi_0$ is the base value (expected churn probability across the population) and $\phi_i$ is the exact impact of feature $i$. Unlike black-box predictions, SHAP reveals *why* a customer is at risk (e.g., Month-to-Month contract adding +0.68 to risk, while Long Tenure subtracting -0.12).
-
----
-
-## Running Automated Tests
-
-Run the full pytest suite:
-```bash
-python -m pytest -v
-```
-**Test Coverage**:
-- `tests/test_preprocessing.py`: Imputation, dtype conversions, feature engineering, transformer shapes.
-- `tests/test_prediction.py`: Risk tier boundaries, retention recommendation rules.
-- `tests/test_api.py`: FastAPI TestClient integration for `/api/health`, `/api/customers`, `/api/predict`, and `/api/analytics`.
-
----
+- src/ — data preparation, feature engineering, training, evaluation, inference, and SHAP services.
+- backend/app/ — FastAPI routes, schemas, database models, and application services.
+- frontend/src/ — dashboard pages, reusable components, and API client.
+- notebooks/ — data exploration, training, evaluation, and explainability notebooks.
+- models/ — checked-in model, preprocessor, and evaluation metadata.
+- PROJECT_LEARNING_GUIDE.md — deeper walkthrough of the project and ML decisions.
 
 ## License
-MIT License. Created for production-grade customer retention and machine learning engineering portfolios.
+
+No LICENSE file is currently included in this repository.
